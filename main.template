@@ -1,0 +1,943 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "AWS Celfocus Student Group/Student Cloudformation",
+    "Parameters": {
+        "SudentPassword": {
+            "NoEcho": "true",
+            "Description": "Enter Default User Password.",
+            "Type": "String",
+            "MinLength": "8",
+            "MaxLength": "16",
+            "ConstraintDescription": " Must contain at least 8 characters."
+        }
+    },
+    "Resources": {
+        "TrainingS3Role": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "RoleName": "TrainingRoleS3ReadWrite",
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "ec2.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/"
+            }
+        },
+        "TrainingS3RolePolicy": {
+            "Type": "AWS::IAM::Policy",
+            "Properties": {
+                "PolicyName": "StudentBucketReadWrite",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "s3:Create*",
+                                "s3:Put*",
+                                "s3:Delete*",
+                                "s3:Get*",
+                                "s3:List*"
+                            ],
+                            "Resource": [
+                                "arn:aws:s3:::celfocus-student-*"
+                            ]
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "s3:Get*",
+                                "s3:List*"
+                            ],
+                            "Resource": [
+                                "*"
+                            ]
+                        }
+                    ]
+                },
+                "Roles": [
+                    {
+                        "Ref": "TrainingS3Role"
+                    }
+                ]
+            }
+        },
+        "TrainingS3InstanceProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "InstanceProfileName": "TrainingS3InstanceProfile",
+                "Path": "/",
+                "Roles": [
+                    {
+                        "Ref": "TrainingS3Role"
+                    }
+                ]
+            }
+        },
+        "StudentPolicyGlobal": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Managed Policy to allow Student permissions",
+                "ManagedPolicyName": "StudentPolicyGlobal",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "StudentGlobalPolicies",
+                            "Effect": "Allow",
+                            "Action": [
+                                "iam:Get*",
+                                "iam:List*",
+                                "cloudwatch:Get*",
+                                "cloudwatch:List*",
+                                "cloudwatch:Describe*",
+                                "logs:Get*",
+                                "logs:Filter*",
+                                "logs:Describe*",
+                                "kms:List*",
+                                "kms:Describe*",
+                                "s3:Get*",
+                                "s3:List*",
+                                "waf:List*",
+                                "cloudfront:*",
+                                "rds:Describe*",
+                                "ec2:DescribeVpcs",
+                                "ec2:DescribeRouteTables",
+                                "ec2:DescribeNetworkAcls",
+                                "cloudformation:Describe*",
+                                "cloudformation:List*",
+                                "cloudformation:Get*",
+                                "budgets:View*",
+                                "aws-portal:View*",
+                                "waf:List*",
+                                "waf:Get*"
+                            ],
+                            "Resource": "*"
+                        },
+                        {
+                            "Sid": "AllowChangeSelfPassword",
+                            "Effect": "Allow",
+                            "Action": "iam:ChangePassword",
+                            "Resource": "arn:aws:iam::425239951089:user/${aws:username}"
+                        },
+                        {
+                            "Sid": "AllowSpecificBucketName",
+                            "Effect": "Allow",
+                            "Action": [
+                                "s3:Create*",
+                                "s3:Put*",
+                                "s3:Delete*"
+                            ],
+                            "Resource": [
+                                "arn:aws:s3:::celfocus-student-*"
+                            ]
+                        },
+                        {
+                            "Effect": "Deny",
+                            "Action": "ec2:RunInstances",
+                            "Resource": "arn:aws:ec2:*:425239951089:instance/*",
+                            "Condition": {
+                                "StringNotLikeIfExists": {
+                                    "ec2:InstanceType": [
+                                        "t1.*",
+                                        "t2.nano",
+                                        "t2.micro",
+                                        "t3.nano",
+                                        "t3.micro"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "StudentPolicyVirginia": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Managed Policy to allow Student permissions",
+                "ManagedPolicyName": "StudentPolicyVirginia",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ec2:*",
+                                "rds:*",
+                                "sns:*",
+                                "sqs:*",
+                                "apigateway:*",
+                                "lambda:*",
+                                "dynamodb:*",
+                                "cloudformation:*",
+                                "iam:PassRole",
+                                "cloudwatch:*",
+                                "elasticloadbalancing:*",
+                                "autoscaling:*"
+                            ],
+                            "Resource": "*",
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:RequestedRegion": "us-east-1"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "StudentGroupVirginia": {
+            "Type": "AWS::IAM::Group",
+            "Properties": {
+                "GroupName": "StudentGroupVirginia",
+                "ManagedPolicyArns": [
+                    {
+                        "Ref": "StudentPolicyGlobal"
+                    },
+                    {
+                        "Ref": "StudentPolicyVirginia"
+                    }
+                ]
+            }
+        },
+        "StudentPolicyOhio": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Managed Policy to allow Student permissions",
+                "ManagedPolicyName": "StudentPolicyOhio",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ec2:*",
+                                "rds:*",
+                                "sns:*",
+                                "sqs:*",
+                                "apigateway:*",
+                                "lambda:*",
+                                "dynamodb:*",
+                                "cloudformation:*",
+                                "iam:PassRole",
+                                "cloudwatch:*",
+                                "elasticloadbalancing:*",
+                                "autoscaling:*"
+                            ],
+                            "Resource": "*",
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:RequestedRegion": "us-east-2"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "StudentGroupOhio": {
+            "Type": "AWS::IAM::Group",
+            "Properties": {
+                "GroupName": "StudentGroupOhio",
+                "ManagedPolicyArns": [
+                    {
+                        "Ref": "StudentPolicyGlobal"
+                    },
+                    {
+                        "Ref": "StudentPolicyOhio"
+                    }
+                ]
+            }
+        },
+        "StudentPolicyCalifornia": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Managed Policy to allow Student permissions",
+                "ManagedPolicyName": "StudentPolicyCalifornia",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ec2:*",
+                                "rds:*",
+                                "sns:*",
+                                "sqs:*",
+                                "apigateway:*",
+                                "lambda:*",
+                                "dynamodb:*",
+                                "cloudformation:*",
+                                "iam:PassRole",
+                                "cloudwatch:*",
+                                "elasticloadbalancing:*",
+                                "autoscaling:*"
+                            ],
+                            "Resource": "*",
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:RequestedRegion": "us-west-1"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "StudentGroupCalifornia": {
+            "Type": "AWS::IAM::Group",
+            "Properties": {
+                "GroupName": "StudentGroupCalifornia",
+                "ManagedPolicyArns": [
+                    {
+                        "Ref": "StudentPolicyGlobal"
+                    },
+                    {
+                        "Ref": "StudentPolicyCalifornia"
+                    }
+                ]
+            }
+        },
+        "StudentPolicyOregon": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Managed Policy to allow Student permissions",
+                "ManagedPolicyName": "StudentPolicyOregon",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ec2:*",
+                                "rds:*",
+                                "sns:*",
+                                "sqs:*",
+                                "apigateway:*",
+                                "lambda:*",
+                                "dynamodb:*",
+                                "cloudformation:*",
+                                "iam:PassRole",
+                                "cloudwatch:*",
+                                "elasticloadbalancing:*",
+                                "autoscaling:*"
+                            ],
+                            "Resource": "*",
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:RequestedRegion": "us-west-2"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "StudentGroupOregon": {
+            "Type": "AWS::IAM::Group",
+            "Properties": {
+                "GroupName": "StudentGroupOregon",
+                "ManagedPolicyArns": [
+                    {
+                        "Ref": "StudentPolicyGlobal"
+                    },
+                    {
+                        "Ref": "StudentPolicyOregon"
+                    }
+                ]
+            }
+        },
+        "StudentPolicyFrankfurt": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Managed Policy to allow Student permissions",
+                "ManagedPolicyName": "StudentPolicyFrankfurt",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ec2:*",
+                                "rds:*",
+                                "sns:*",
+                                "sqs:*",
+                                "apigateway:*",
+                                "lambda:*",
+                                "dynamodb:*",
+                                "cloudformation:*",
+                                "iam:PassRole",
+                                "cloudwatch:*",
+                                "elasticloadbalancing:*",
+                                "autoscaling:*"
+                            ],
+                            "Resource": "*",
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:RequestedRegion": "eu-central-1"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "StudentGroupFrankfurt": {
+            "Type": "AWS::IAM::Group",
+            "Properties": {
+                "GroupName": "StudentGroupFrankfurt",
+                "ManagedPolicyArns": [
+                    {
+                        "Ref": "StudentPolicyGlobal"
+                    },
+                    {
+                        "Ref": "StudentPolicyFrankfurt"
+                    }
+                ]
+            }
+        },
+        "StudentPolicyLondon": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Managed Policy to allow Student permissions",
+                "ManagedPolicyName": "StudentPolicyLondon",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ec2:*",
+                                "rds:*",
+                                "sns:*",
+                                "sqs:*",
+                                "apigateway:*",
+                                "lambda:*",
+                                "dynamodb:*",
+                                "cloudformation:*",
+                                "iam:PassRole",
+                                "cloudwatch:*",
+                                "elasticloadbalancing:*",
+                                "autoscaling:*"
+                            ],
+                            "Resource": "*",
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:RequestedRegion": "eu-west-2"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "StudentGroupLondon": {
+            "Type": "AWS::IAM::Group",
+            "Properties": {
+                "GroupName": "StudentGroupLondon",
+                "ManagedPolicyArns": [
+                    {
+                        "Ref": "StudentPolicyGlobal"
+                    },
+                    {
+                        "Ref": "StudentPolicyLondon"
+                    }
+                ]
+            }
+        },
+        "StudentPolicyParis": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Managed Policy to allow Student permissions",
+                "ManagedPolicyName": "StudentPolicyParis",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ec2:*",
+                                "rds:*",
+                                "sns:*",
+                                "sqs:*",
+                                "apigateway:*",
+                                "lambda:*",
+                                "dynamodb:*",
+                                "cloudformation:*",
+                                "iam:PassRole",
+                                "cloudwatch:*",
+                                "elasticloadbalancing:*",
+                                "autoscaling:*"
+                            ],
+                            "Resource": "*",
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:RequestedRegion": "eu-west-3"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "StudentGroupParis": {
+            "Type": "AWS::IAM::Group",
+            "Properties": {
+                "GroupName": "StudentGroupParis",
+                "ManagedPolicyArns": [
+                    {
+                        "Ref": "StudentPolicyGlobal"
+                    },
+                    {
+                        "Ref": "StudentPolicyParis"
+                    }
+                ]
+            }
+        },
+        "StudentPolicyStockholm": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Managed Policy to allow Student permissions",
+                "ManagedPolicyName": "StudentPolicyStockholm",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ec2:*",
+                                "rds:*",
+                                "sns:*",
+                                "sqs:*",
+                                "apigateway:*",
+                                "lambda:*",
+                                "dynamodb:*",
+                                "cloudformation:*",
+                                "iam:PassRole",
+                                "cloudwatch:*",
+                                "elasticloadbalancing:*",
+                                "autoscaling:*"
+                            ],
+                            "Resource": "*",
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:RequestedRegion": "eu-north-1"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "StudentGroupStockholm": {
+            "Type": "AWS::IAM::Group",
+            "Properties": {
+                "GroupName": "StudentGroupStockholm",
+                "ManagedPolicyArns": [
+                    {
+                        "Ref": "StudentPolicyGlobal"
+                    },
+                    {
+                        "Ref": "StudentPolicyStockholm"
+                    }
+                ]
+            }
+        },
+        "StudentPolicyTokyo": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Managed Policy to allow Student permissions",
+                "ManagedPolicyName": "StudentPolicyTokyo",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ec2:*",
+                                "rds:*",
+                                "sns:*",
+                                "sqs:*",
+                                "apigateway:*",
+                                "lambda:*",
+                                "dynamodb:*",
+                                "cloudformation:*",
+                                "iam:PassRole",
+                                "cloudwatch:*",
+                                "elasticloadbalancing:*",
+                                "autoscaling:*"
+                            ],
+                            "Resource": "*",
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:RequestedRegion": "ap-northeast-1"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "StudentGroupTokyo": {
+            "Type": "AWS::IAM::Group",
+            "Properties": {
+                "GroupName": "StudentGroupTokyo",
+                "ManagedPolicyArns": [
+                    {
+                        "Ref": "StudentPolicyGlobal"
+                    },
+                    {
+                        "Ref": "StudentPolicyTokyo"
+                    }
+                ]
+            }
+        },
+        "StudentPolicySydney": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Managed Policy to allow Student permissions",
+                "ManagedPolicyName": "StudentPolicySydney",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ec2:*",
+                                "rds:*",
+                                "sns:*",
+                                "sqs:*",
+                                "apigateway:*",
+                                "lambda:*",
+                                "dynamodb:*",
+                                "cloudformation:*",
+                                "iam:PassRole",
+                                "cloudwatch:*",
+                                "elasticloadbalancing:*",
+                                "autoscaling:*"
+                            ],
+                            "Resource": "*",
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:RequestedRegion": "ap-southeast-2"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "StudentGroupSydney": {
+            "Type": "AWS::IAM::Group",
+            "Properties": {
+                "GroupName": "StudentGroupSydney",
+                "ManagedPolicyArns": [
+                    {
+                        "Ref": "StudentPolicyGlobal"
+                    },
+                    {
+                        "Ref": "StudentPolicySydney"
+                    }
+                ]
+            }
+        },
+        "StudentPolicySaoPaulo": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Managed Policy to allow Student permissions",
+                "ManagedPolicyName": "StudentPolicySaoPaulo",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ec2:*",
+                                "rds:*",
+                                "sns:*",
+                                "sqs:*",
+                                "apigateway:*",
+                                "lambda:*",
+                                "dynamodb:*",
+                                "cloudformation:*",
+                                "iam:PassRole",
+                                "cloudwatch:*",
+                                "elasticloadbalancing:*",
+                                "autoscaling:*"
+                            ],
+                            "Resource": "*",
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:RequestedRegion": "sa-east-1"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "StudentGroupSaoPaulo": {
+            "Type": "AWS::IAM::Group",
+            "Properties": {
+                "GroupName": "StudentGroupSaoPaulo",
+                "ManagedPolicyArns": [
+                    {
+                        "Ref": "StudentPolicyGlobal"
+                    },
+                    {
+                        "Ref": "StudentPolicySaoPaulo"
+                    }
+                ]
+            }
+        },
+        "StudentPolicyHongKong": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Managed Policy to allow Student permissions",
+                "ManagedPolicyName": "StudentPolicyHongKong",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ec2:*",
+                                "rds:*",
+                                "sns:*",
+                                "sqs:*",
+                                "apigateway:*",
+                                "lambda:*",
+                                "dynamodb:*",
+                                "cloudformation:*",
+                                "iam:PassRole",
+                                "cloudwatch:*",
+                                "elasticloadbalancing:*",
+                                "autoscaling:*"
+                            ],
+                            "Resource": "*",
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:RequestedRegion": "ap-east-1"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "StudentGroupHongKong": {
+            "Type": "AWS::IAM::Group",
+            "Properties": {
+                "GroupName": "StudentGroupHongKong",
+                "ManagedPolicyArns": [
+                    {
+                        "Ref": "StudentPolicyGlobal"
+                    },
+                    {
+                        "Ref": "StudentPolicyHongKong"
+                    }
+                ]
+            }
+        },
+        "Student1": {
+            "Type": "AWS::IAM::User",
+            "Properties": {
+                "Groups": [
+                    {
+                        "Ref": "StudentGroupVirginia"
+                    }
+                ],
+                "LoginProfile": {
+                    "Password": {
+                        "Ref": "SudentPassword"
+                    },
+                    "PasswordResetRequired": "true"
+                },
+                "UserName": "student1@celfocus.com"
+            }
+        },
+        "Student2": {
+            "Type": "AWS::IAM::User",
+            "Properties": {
+                "Groups": [
+                    {
+                        "Ref": "StudentGroupCalifornia"
+                    }
+                ],
+                "LoginProfile": {
+                    "Password": {
+                        "Ref": "SudentPassword"
+                    },
+                    "PasswordResetRequired": "true"
+                },
+                "UserName": "student2@celfocus.com"
+            }
+        },
+        "Student3": {
+            "Type": "AWS::IAM::User",
+            "Properties": {
+                "Groups": [
+                    {
+                        "Ref": "StudentGroupLondon"
+                    }
+                ],
+                "LoginProfile": {
+                    "Password": {
+                        "Ref": "SudentPassword"
+                    },
+                    "PasswordResetRequired": "true"
+                },
+                "UserName": "student3@celfocus.com"
+            }
+        },
+        "Student4": {
+            "Type": "AWS::IAM::User",
+            "Properties": {
+                "Groups": [
+                    {
+                        "Ref": "StudentGroupFrankfurt"
+                    }
+                ],
+                "LoginProfile": {
+                    "Password": {
+                        "Ref": "SudentPassword"
+                    },
+                    "PasswordResetRequired": "true"
+                },
+                "UserName": "student4@celfocus.com"
+            }
+        },
+        "Student5": {
+            "Type": "AWS::IAM::User",
+            "Properties": {
+                "Groups": [
+                    {
+                        "Ref": "StudentGroupParis"
+                    }
+                ],
+                "LoginProfile": {
+                    "Password": {
+                        "Ref": "SudentPassword"
+                    },
+                    "PasswordResetRequired": "true"
+                },
+                "UserName": "student5@celfocus.com"
+            }
+        },
+        "Student6": {
+            "Type": "AWS::IAM::User",
+            "Properties": {
+                "Groups": [
+                    {
+                        "Ref": "StudentGroupSydney"
+                    }
+                ],
+                "LoginProfile": {
+                    "Password": {
+                        "Ref": "SudentPassword"
+                    },
+                    "PasswordResetRequired": "true"
+                },
+                "UserName": "student6@celfocus.com"
+            }
+        },
+        "Student7": {
+            "Type": "AWS::IAM::User",
+            "Properties": {
+                "Groups": [
+                    {
+                        "Ref": "StudentGroupSaoPaulo"
+                    }
+                ],
+                "LoginProfile": {
+                    "Password": {
+                        "Ref": "SudentPassword"
+                    },
+                    "PasswordResetRequired": "true"
+                },
+                "UserName": "student7@celfocus.com"
+            }
+        },
+        "Student8": {
+            "Type": "AWS::IAM::User",
+            "Properties": {
+                "Groups": [
+                    {
+                        "Ref": "StudentGroupStockholm"
+                    }
+                ],
+                "LoginProfile": {
+                    "Password": {
+                        "Ref": "SudentPassword"
+                    },
+                    "PasswordResetRequired": "true"
+                },
+                "UserName": "student8@celfocus.com"
+            }
+        },
+        "Student9": {
+            "Type": "AWS::IAM::User",
+            "Properties": {
+                "Groups": [
+                    {
+                        "Ref": "StudentGroupTokyo"
+                    }
+                ],
+                "LoginProfile": {
+                    "Password": {
+                        "Ref": "SudentPassword"
+                    },
+                    "PasswordResetRequired": "true"
+                },
+                "UserName": "student9@celfocus.com"
+            }
+        },
+        "Student10": {
+            "Type": "AWS::IAM::User",
+            "Properties": {
+                "Groups": [
+                    {
+                        "Ref": "StudentGroupOregon"
+                    }
+                ],
+                "LoginProfile": {
+                    "Password": {
+                        "Ref": "SudentPassword"
+                    },
+                    "PasswordResetRequired": "true"
+                },
+                "UserName": "student10@celfocus.com"
+            }
+        },
+        "Student11": {
+            "Type": "AWS::IAM::User",
+            "Properties": {
+                "Groups": [
+                    {
+                        "Ref": "StudentGroupOhio"
+                    }
+                ],
+                "LoginProfile": {
+                    "Password": {
+                        "Ref": "SudentPassword"
+                    },
+                    "PasswordResetRequired": "true"
+                },
+                "UserName": "student11@celfocus.com"
+            }
+        }
+    }
+}
