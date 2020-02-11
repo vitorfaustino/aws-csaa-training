@@ -1,4 +1,4 @@
-# Celfocus AWS CSAA Training Course Material
+# AWS CSAA Training Course Material
 
 ## Introduction
 
