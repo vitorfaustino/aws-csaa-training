@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>India Telecom Top-up</title>
+        <link href="css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+        <link href="css/style.css" rel="stylesheet">
+        <link href="images/favicon.ico" rel="icon">
+        <script src="js/jquery-1.11.1.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <!------ Include the above in your HEAD tag ---------->
+    
+        <link href="https://fonts.googleapis.com/css?family=Oleo+Script:400,700" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Teko:400,700" rel="stylesheet">
+        <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <section id="contact">
+			<div class="section-content">
+				<h1 class="section-header">India Telecom mobile top-up</h1>
+				<h3 id="status" style="display: none;color:green">Status Message</h3>
+
+				<!-- div id="status" style="display: none;color:green> </div -->
+
+				<audio id="player" controls="controls"> <source id="mp3_src" src="" type="audio/mpeg">Your browser does not support the audio element.</audio>
+
+			</div>
+			
+			<div class="container">
+
+				<form id="serverless-form" action="#">
+					<div class="col-md-12">
+			  			<div class="form-group">
+			  				<label for="firstname">Name</label>
+					    	<input type="text" maxlength="25" class="form-control" autocomplete="given-name" id="firstname" name="name" placeholder=" Enter Your Name" required>
+                        </div>
+
+				  		<!-- div class="form-group">
+					    	<label for="exampleInputEmail">Email Address</label>
+					    	<input type="email" class="form-control" autocomplete="email" id="exampleInputEmail" name="email" placeholder=" Enter Email id" required>
+					  	</div -->
+
+					  	<div class="form-group">
+					    	<label for="msisdn">Phone Number</label>
+					    	<input type="tel" maxlength="9" class="form-control" autocomplete="tel" id="msisdn" name="msisdn" placeholder=" Enter Phone Number" required>
+					  	</div>
+
+                        <div class="form-group">
+					    	<label for="topup_qty">Amount (Indian Rupee)</label>
+					    	<select class="form-control" id="topup_qty" name="topup_qty">
+						      <option>1000</option>
+						      <option>2000</option>
+						      <option>3000</option>
+						      <option>4000</option>
+						      <option>5000</option>
+						    </select>
+			  			</div>
+
+			  		<!-- /div -->
+
+
+			  			<div class="form-group">
+			  				<label for="message">Send a cool message and win an Iphone!</label>
+			  			 	<input type="text" maxlength="60" class="form-control" id="message" name="message" placeholder="Enter a cool message and win an iphone!" required>
+			  			</div>
+
+			  			<div class="form-group">
+					    	<select class="form-control" id="language" name="language">
+						      <option>English</option>
+						      <option>Hindi</option>
+						      <option>Portuguese</option>
+						      <option>French</option>
+						    </select>
+			  			</div>
+
+			  			<div  class="form-group">
+			  				<img src="https://www.merchantequip.com/image/?logos=v|m|p|bit&height=64" alt="Merchant Equipment Store Credit Card Logos"/>
+			  			</div>
+
+			  			<div  class="form-group">
+			  				<button type="submit" id="submit" class="btn btn-default submit"><i id="loader" class="fa fa-paper-plane" aria-hidden="true"></i>  Top UP Phone!</button>
+			  			</div>
+
+			  		</div>
+
+					<!-- /div -->
+			  		   
+
+				</form>
+			</div>
+        </section>
+        <script>
+            //Insert your lambda function URL here
+            var URL = "https://CHANGE-THIS.execute-api.us-east-2.amazonaws.com/prod";
+        </script>
+        <script src="js/script.js"></script>
+    </body>
+</html>
