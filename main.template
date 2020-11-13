@@ -122,7 +122,10 @@
                                 "budgets:View*",
                                 "aws-portal:View*",
                                 "waf:List*",
-                                "waf:Get*"
+                                "waf:Get*",
+                                "logs:*",
+                                "ec2:DescribeImages",
+                                "ec2:CopyImage"
                             ],
                             "Resource": "*"
                         },
@@ -156,6 +159,23 @@
                                         "t2.micro",
                                         "t3.nano",
                                         "t3.micro"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "Effect": "Deny",
+                            "Action": [
+                                "rds:CreateDBInstance",
+                                "rds:CreateDBCluster"
+                            ],
+                            "Resource": "arn:aws:rds:*:*:db:*",
+                            "Condition": {
+                                "ForAnyValue:StringNotLike": {
+                                    "rds:DatabaseClass": [
+                                        "*.micro",
+                                        "*.small",
+                                        "*.medium"
                                     ]
                                 }
                             }
@@ -748,6 +768,55 @@
                     },
                     {
                         "Ref": "StudentPolicyHongKong"
+                    }
+                ]
+            }
+        },
+        "StudentPolicyMilan": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Managed Policy to allow Student permissions",
+                "ManagedPolicyName": "StudentPolicyMilan",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ec2:*",
+                                "rds:*",
+                                "sns:*",
+                                "sqs:*",
+                                "apigateway:*",
+                                "lambda:*",
+                                "dynamodb:*",
+                                "cloudformation:*",
+                                "iam:PassRole",
+                                "cloudwatch:*",
+                                "elasticloadbalancing:*",
+                                "autoscaling:*"
+                            ],
+                            "Resource": "*",
+                            "Condition": {
+                                "StringEquals": {
+                                    "aws:RequestedRegion": "eu-south-1"
+                                }
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "StudentGroupMilan": {
+            "Type": "AWS::IAM::Group",
+            "Properties": {
+                "GroupName": "StudentGroupMilan",
+                "ManagedPolicyArns": [
+                    {
+                        "Ref": "StudentPolicyGlobal"
+                    },
+                    {
+                        "Ref": "StudentPolicyMilan"
                     }
                 ]
             }
