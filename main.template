@@ -113,9 +113,7 @@
                                 "waf:List*",
                                 "cloudfront:*",
                                 "rds:Describe*",
-                                "ec2:DescribeVpcs",
-                                "ec2:DescribeRouteTables",
-                                "ec2:DescribeNetworkAcls",
+                                "ec2:Describe*",
                                 "cloudformation:Describe*",
                                 "cloudformation:List*",
                                 "cloudformation:Get*",
@@ -125,7 +123,9 @@
                                 "waf:Get*",
                                 "logs:*",
                                 "ec2:DescribeImages",
-                                "ec2:CopyImage"
+                                "ec2:CopyImage",
+                                "route53resolver:List*",
+                                "access-analyzer:List*"
                             ],
                             "Resource": "*"
                         },
