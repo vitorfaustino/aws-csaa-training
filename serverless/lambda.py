@@ -33,16 +33,16 @@ def lambda_handler(event, context):
     print('Msisdn: ' +msisdnBlock)
     
     if event["language"].lower() == "portuguese" :
-      rest = 'Olá ' + event["name"] + '! Obrigado por escolher a India Telecom. O seu telemóvel ' + msisdnBlock + ' foi carregado com ' + event["topup_qty"] + ' rupias com sucesso. Visite a nossa página para conhecer os nossos produtos e serviços! A sua mensagem é ' + event["message"] + '. Iphone já não há, mas há sempre alegria'
+      rest = 'Olá ' + event["name"] + '! Obrigado por escolher a India Telecom. O seu telemóvel ' + msisdnBlock + ' foi carregado com ' + event["topup_qty"] + ' rupias com sucesso. Visite a nossa página para conhecer os nossos produtos e serviços! A sua mensagem é ' + event["message"] + '.'
       voiceId = 'Ines'
     elif event["language"].lower() == "hindi" :
       rest = 'नमस्ते  ' + event["name"] + ' भारत टेलीकॉम को चुनने के लिए धन्यवाद। आपका मोबाइल फोन ' + msisdnBlock + ' सफलता के साथ ' + event["topup_qty"] + ' रुपये के साथ ऊपर था। हमारे नए उत्पादों और सेवाओं को जानने के लिए हमारी वेबसाइट पर जाएँ! आपका संदेश ' + event["message"] + ' है। Iphone अनुपलब्ध है, लेकिन वहाँ हमेशा है'
       voiceId = 'Aditi'
     elif event["language"].lower() == "french" :
-      rest = 'Bonjour ' + event["name"] + '! Merci d’avoir choisi India Telecom. Votre téléphone portable ' + msisdnBlock + ' a été rechargé avec ' + event["topup_qty"] + ' roupies avec succès. Visitez notre site web pour connaître nos nouveaux produits et services! Votre message est ' + event["message"]  + '. Iphone n\'est pas disponible, mais il y a toujours de la joie'
+      rest = 'Bonjour ' + event["name"] + '! Merci d’avoir choisi India Telecom. Votre téléphone portable ' + msisdnBlock + ' a été rechargé avec ' + event["topup_qty"] + ' roupies avec succès. Visitez notre site web pour connaître nos nouveaux produits et services! Votre message est ' + event["message"]  + '.'
       voiceId = 'Celine'
     else:
-      rest = 'Hello ' + event["name"] + '! Thank you for choosing India Telecom. Your mobile phone ' + msisdnBlock + ' was top up with ' + event["topup_qty"] + ' rupees with success. Visit our website to know our new products and services! You message is ' + event["message"] +'. Iphone is unavailable, but there is always joy'
+      rest = 'Hello ' + event["name"] + '! Thank you for choosing India Telecom. Your mobile phone ' + msisdnBlock + ' was top up with ' + event["topup_qty"] + ' rupees with success. Visit our website to know our new products and services! You message is ' + event["message"] +'.'
       voiceId = 'Raveena'
 
     #Because single invocation of the polly synthesize_speech api can 
@@ -76,7 +76,7 @@ def lambda_handler(event, context):
         if "AudioStream" in response:
             with closing(response["AudioStream"]) as stream:
                 output = os.path.join("/tmp/", event["msisdn"]+xdate)
-                with open(output, "a") as file:
+                with open(output, "wb") as file:
                     file.write(stream.read())
 
     s3 = boto3.client('s3')
